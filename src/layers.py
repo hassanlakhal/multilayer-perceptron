@@ -1,3 +1,4 @@
+import numpy as np
 class DenseLayer :
     def __init__(self, units, activation='sigmoid', weights_initializer='default'):
         self.units = units
