@@ -1,4 +1,5 @@
 import numpy as np
+from activation import sigmoid
 class DenseLayer :
     def __init__(self, units, activation='sigmoid', weights_initializer='default'):
         self.units = units
@@ -7,6 +8,7 @@ class DenseLayer :
         self.weights = None
         self.bias = None
 
+        self.a = None
         self.input = None
         self.z = None
     

@@ -13,3 +13,8 @@ class Model:
             layers_list[i].initialize(input_dim)
             
         return NetworkContainer(layers_list)
+    
+    def fit(self, network, data_train, data_valid, loss='categoricalCrossentropy', learning_rate=0.0314,
+                batch_size=8, epochs=84)
+        
+        pass
