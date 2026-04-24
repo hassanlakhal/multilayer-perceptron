@@ -1,5 +1,5 @@
 import numpy as np
-from loss import loss_BCE
+from src.loss import loss_BCE
 class Model:
     def createNetwork(self, layers_list):
         class NetworkContainer:

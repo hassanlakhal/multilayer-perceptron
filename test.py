@@ -1,6 +1,7 @@
-import layers
-from network import Model
+import src.layers as layers
+from src.network import Model
 import numpy as np
+from split_data import load_and_split_data
 model = Model()
 
 input_shape = 30
@@ -15,18 +16,9 @@ layers.DenseLayer(output_shape, activation='softmax', weights_initializer='heUni
 ])
 
 
-X_train = np.random.randn(100, 30) 
-y_train = np.eye(2)[np.random.randint(0, 2, 100)]
+X_train, X_test, y_train, y_test = load_and_split_data('data/data.csv')
 
 
-X_val = np.random.randn(20, 30)
-y_val = np.eye(2)[np.random.randint(0, 2, 20)]
-
-
-data_train = (X_train, y_train)
-data_valid = (X_val, y_val)
-
-
-model.fit(network, data_train, data_valid, loss='categoricalCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84)
+model.fit(network, (X_train, y_train), (X_test, y_test), loss='categoricalCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84)
 
 print(network.layers[-1].weights.shape)
