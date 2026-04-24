@@ -1,5 +1,5 @@
 import numpy as np
-from activation import sigmoid
+from activations import sigmoid , softmax
 class DenseLayer :
     def __init__(self, units, activation='sigmoid', weights_initializer='default'):
         self.units = units
@@ -24,7 +24,14 @@ class DenseLayer :
     def forward(self, input_data):
         self.input = input_data
 
-        self.z = np.dot(self.input, self.weights) + self.bias
-
-        return self.z
+        self.Z = np.dot(input_data, self.weights) + self.bias
+        
+        if self.activation == 'sigmoid':
+            self.A = sigmoid(self.Z)
+        elif self.activation == 'softmax':
+            self.A = softmax(self.Z)
+        else:
+            self.A = self.Z
+        
+        return self.A
 
