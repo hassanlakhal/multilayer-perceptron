@@ -23,5 +23,11 @@ class Model:
 
         for i in range(epochs):
             indices = np.random.permutation(n_samples)
-            X_shuffle = X_train[indices]
-            y_suffle = y_train[indices]
+            X_shuffled = X_train[indices]
+            y_shuffled = y_train[indices]
+
+            for i range(0,n_samples,batch_size):
+
+                X_batch = X_shuffled[i:i+batch_size]
+                y_batch = y_shuffled[i:i+batch_size]
+                
