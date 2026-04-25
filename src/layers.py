@@ -15,16 +15,16 @@ class DenseLayer :
     def initialize(self, input_size):
         if  self.initializer == 'heUniform':
             limit = np.sqrt(6/ input_size)
-            self.weights = np.random.uniform(-limit, limit, (input_size, self.units))
+            self.weights = np.random.uniform(-limit, limit, (self.units, input_size))
         else:
             self.weights = np.random.randn(input_size, self.units) * 0.01
         
-        self.bias = np.zeros((1, self.units)) 
+        self.bias = np.zeros((self.units, 1)) 
 
     def forward(self, input_data):
         self.input = input_data
 
-        self.Z = np.dot(input_data, self.weights) + self.bias
+        self.Z = np.dot(self.weights, input_data) + self.bias
         
         if self.activation == 'sigmoid':
             self.A = sigmoid(self.Z)
@@ -35,3 +35,17 @@ class DenseLayer :
         
         return self.A
 
+    def backward(self, gradient, learning_rate):
+        
+        self.dW = np.dot(gradient, self.input.T)
+
+        self.dB = np.sum(gradient, axis=1, keepdims=True)
+        
+
+        d_input = np.dot(self.weights.T, gradient)
+
+
+        self.weights -= learning_rate * self.dW
+        self.bias -= learning_rate *  self.dB
+
+        return d_input

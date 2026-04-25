@@ -8,6 +8,7 @@ class Model:
                 
         
         layers_list[0].initialize(layers_list[0].units)
+
         for i in range(1, len(layers_list)):
             input_dim = layers_list[i-1].units
             print(f"input_dim {input_dim}")
@@ -30,8 +31,8 @@ class Model:
             y_shuffled = y_train[indices]
 
             for b in range(0, n_samples, batch_size): 
-                X_batch = X_shuffled[b:b+batch_size]
-                y_batch = y_shuffled[b:b+batch_size]
+                X_batch = X_shuffled[b:b+batch_size].T
+                y_batch = y_shuffled[b:b+batch_size].T
 
                 output = X_batch
                 for layer in network.layers:
@@ -40,5 +41,15 @@ class Model:
                 batch_loss = loss_BCE(y_batch, output, loss)
                 current_epoch_loss += batch_loss
                 num_batches += 1
+                error_gradient = (output - y_batch) /(output * (1 - output) + 1e-8)
 
+                gradient = error_gradient
+
+
+                for layer in reversed(network.layers):
+                    gradient = layer.backward(gradient, learning_rate)
+
+                # print(f"error_gradient : {gradient.shape}")
             print(f"Epoch {epoch+1}/{epochs} - Loss: {current_epoch_loss / num_batches}")
+                
+            
