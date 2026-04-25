@@ -1,5 +1,5 @@
 import numpy as np
-from src.loss import loss_BCE
+from src.loss import loss_BCE, loss_CCE
 class Model:
     def createNetwork(self, layers_list):
         class NetworkContainer:
@@ -20,7 +20,10 @@ class Model:
                 batch_size=8, epochs=84):
         
         X_train, y_train = data_train
+        X_valid, y_valid = data_valid
         n_samples = X_train.shape[0]
+
+        history = {'loss': [], 'val_loss': []}
 
         for epoch in range(epochs): 
             current_epoch_loss = 0.0 
@@ -31,26 +34,40 @@ class Model:
             y_shuffled = y_train[indices]
 
             for b in range(0, n_samples, batch_size): 
-                X_batch = X_shuffled[b:b+batch_size].T
-                y_batch = y_shuffled[b:b+batch_size].T
+                X_batch = X_shuffled[b:b+batch_size].T # (30, batch_size)
+                y_batch = y_shuffled[b:b+batch_size].T # (2, batch_size)
 
+                # 1. Forward Pass
                 output = X_batch
                 for layer in network.layers:
                     output = layer.forward(output)
               
-                batch_loss = loss_BCE(y_batch, output, loss)
+                batch_loss = loss_CCE(y_batch, output)
                 current_epoch_loss += batch_loss
                 num_batches += 1
-                # error_gradient = (output - y_batch) /(output * (1 - output) + 1e-8)
-                error_gradient = output - y_batch                                    
+
+          
+                error_gradient = output - y_batch 
 
                 gradient = error_gradient
-
-
                 for layer in reversed(network.layers):
                     gradient = layer.backward(gradient, learning_rate)
 
-                # print(f"error_gradient : {gradient.shape}")
-            print(f"Epoch {epoch+1}/{epochs} - Loss: {current_epoch_loss / num_batches}")
-                
+            val_output = X_valid.T
+            for layer in network.layers:
+                val_output = layer.forward(val_output)
+            
+            epoch_loss = current_epoch_loss / num_batches
+            val_loss = loss_BCE(y_valid.T, val_output)
+            
+            history['loss'].append(epoch_loss)
+            history['val_loss'].append(val_loss)
+
+            train_preds = np.argmax(output, axis=0)
+            train_true = np.argmax(y_batch, axis=0)
+            accuracy = np.mean(train_preds == train_true)
+
+            print(f"Epoch {epoch+1}/{epochs} - loss: {epoch_loss:.4f} - val_loss: {val_loss:.4f}")
+        
+        return history
             

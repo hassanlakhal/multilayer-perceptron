@@ -19,6 +19,6 @@ layers.DenseLayer(output_shape, activation='softmax', weights_initializer='heUni
 X_train, X_test, y_train, y_test = load_and_split_data('data/data.csv')
 
 
-model.fit(network, (X_train, y_train), (X_test, y_test), loss='categoricalCrossentropy', learning_rate=0.0314, batch_size=8, epochs=84)
+model.fit(network, (X_train, y_train), (X_test, y_test), loss='categoricalCrossentropy', learning_rate=0.0314, batch_size=8, epochs=70)
 
 print(network.layers[-1].weights.shape)
