@@ -11,13 +11,15 @@ class DenseLayer :
         self.a = None
         self.input = None
         self.z = None
+        self.dW = None
+        self.dB = None
     
     def initialize(self, input_size):
         if  self.initializer == 'heUniform':
             limit = np.sqrt(6/ input_size)
             self.weights = np.random.uniform(-limit, limit, (self.units, input_size))
         else:
-            self.weights = np.random.randn(input_size, self.units) * 0.01
+            self.weights = np.random.randn(self.units, input_size) * 0.01
         
         self.bias = np.zeros((self.units, 1)) 
 
@@ -40,7 +42,7 @@ class DenseLayer :
         self.dW = np.dot(gradient, self.input.T)
 
         self.dB = np.sum(gradient, axis=1, keepdims=True)
-        
+
 
         d_input = np.dot(self.weights.T, gradient)
 

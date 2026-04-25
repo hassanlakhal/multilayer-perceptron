@@ -41,7 +41,8 @@ class Model:
                 batch_loss = loss_BCE(y_batch, output, loss)
                 current_epoch_loss += batch_loss
                 num_batches += 1
-                error_gradient = (output - y_batch) /(output * (1 - output) + 1e-8)
+                # error_gradient = (output - y_batch) /(output * (1 - output) + 1e-8)
+                error_gradient = output - y_batch                                    
 
                 gradient = error_gradient
 
