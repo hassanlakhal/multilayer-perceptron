@@ -1,23 +1,9 @@
 import src.layers as layers
 from src.network import Model
 import numpy as np
+from src.utils import load_model
 from split_data import load_and_split_data
 model = Model()
-
-
-def load_model(network, filename='model/saved_model.npy'):
-    
-    model_data = np.load(filename, allow_pickle=True)
-    
-    data_idx = 0
-    for layer in network.layers:
-        if hasattr(layer, 'weights'):
-            layer.weights = model_data[data_idx]
-            layer.bias = model_data[data_idx + 1]
-            data_idx += 2
-            
-    print("Model loaded successfully from .npy!")
-
 
 network = model.createNetwork([
 layers.DenseLayer(30, activation='sigmoid'),
@@ -28,8 +14,7 @@ layers.DenseLayer(2, activation='softmax', weights_initializer='heUniform')
 ])
 
 
-
-load_model(network)
+load_model(network, "model/best_model.npy")
 
 _, X_test, _, y_test = load_and_split_data('data/data.csv')
 

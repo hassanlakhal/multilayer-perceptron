@@ -1,5 +1,7 @@
 import numpy as np
 from src.loss import loss_BCE, loss_CCE
+from src.utils import save_model
+
 class Model:
     def createNetwork(self, layers_list):
         class NetworkContainer:
@@ -22,6 +24,9 @@ class Model:
         X_train, y_train = data_train
         X_valid, y_valid = data_valid
         n_samples = X_train.shape[0]
+        best_val_loss = float('inf') 
+        patience = 10
+        patience_counter = 0
 
         history = {'loss': [], 'val_loss': []}
 
@@ -67,7 +72,20 @@ class Model:
             train_true = np.argmax(y_batch, axis=0)
             accuracy = np.mean(train_preds == train_true)
 
-            print(f"Epoch {epoch+1}/{epochs} - loss: {epoch_loss:.4f} - val_loss: {val_loss:.4f}")
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                patience_counter = 0
+
+                save_model(network, "model/best_model.npy")
+                print(f"--- Model saved at epoch {epoch+1} (Best Val Loss: {val_loss:.4f})")
+            else:
+                patience_counter += 1
+                
+            if patience_counter >= patience:
+                print(f"Early Stopping! No improvement for {patience} epochs.")
+                break
+
+            # print(f"Epoch {epoch+1}/{epochs} - loss: {epoch_loss:.4f} - val_loss: {val_loss:.4f}")
         
         return history
             

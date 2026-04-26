@@ -13,6 +13,9 @@ class DenseLayer :
         self.z = None
         self.dW = None
         self.dB = None
+
+        self.v_w = np.zeros_like(self.weights) 
+        self.v_b = np.zeros_like(self.bias)   
     
     def initialize(self, input_size):
         if  self.initializer == 'heUniform':
@@ -37,17 +40,24 @@ class DenseLayer :
         
         return self.A
 
-    def backward(self, gradient, learning_rate):
+    def backward(self, gradient, lr, beta=0.9, epsilon=1e-8):
         
         self.dW = np.dot(gradient, self.input.T)
 
         self.dB = np.sum(gradient, axis=1, keepdims=True)
 
 
+        self.v_w = beta * self.v_w + (1 - beta) * (self.dW**2)
+        self.v_b = beta * self.v_b + (1 - beta) * (self.dB**2)
+        
+        
+        self.weights -= (lr / (np.sqrt(self.v_w) + epsilon)) * self.dW
+        self.bias -= (lr / (np.sqrt(self.v_b) + epsilon)) * self.dB
+
         d_input = np.dot(self.weights.T, gradient)
 
 
-        self.weights -= learning_rate * self.dW
-        self.bias -= learning_rate *  self.dB
+        # self.weights -= lr * self.dW
+        # self.bias -= lr *  self.dB
 
         return d_input
