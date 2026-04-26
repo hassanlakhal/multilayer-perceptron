@@ -13,13 +13,13 @@ class Model:
 
         for i in range(1, len(layers_list)):
             input_dim = layers_list[i-1].units
-            print(f"input_dim {input_dim}")
+            # print(f"input_dim {input_dim}")
             layers_list[i].initialize(input_dim)
             
         return NetworkContainer(layers_list)
     
     def fit(self, network, data_train, data_valid, loss='categoricalCrossentropy', learning_rate=0.0314,
-                batch_size=8, epochs=84):
+            batch_size=8, epochs=84):
         
         X_train, y_train = data_train
         X_valid, y_valid = data_valid
@@ -28,7 +28,10 @@ class Model:
         patience = 10
         patience_counter = 0
 
-        history = {'loss': [], 'val_loss': []}
+        history = {
+            'loss': [], 'val_loss': [],
+            'accuracy': [], 'val_accuracy': []
+        }
 
         for epoch in range(epochs): 
             current_epoch_loss = 0.0 
@@ -39,10 +42,9 @@ class Model:
             y_shuffled = y_train[indices]
 
             for b in range(0, n_samples, batch_size): 
-                X_batch = X_shuffled[b:b+batch_size].T # (30, batch_size)
-                y_batch = y_shuffled[b:b+batch_size].T # (2, batch_size)
+                X_batch = X_shuffled[b:b+batch_size].T 
+                y_batch = y_shuffled[b:b+batch_size].T 
 
-                # 1. Forward Pass
                 output = X_batch
                 for layer in network.layers:
                     output = layer.forward(output)
@@ -51,41 +53,43 @@ class Model:
                 current_epoch_loss += batch_loss
                 num_batches += 1
 
-          
                 error_gradient = output - y_batch 
-
                 gradient = error_gradient
                 for layer in reversed(network.layers):
                     gradient = layer.backward(gradient, learning_rate)
 
+            
             val_output = X_valid.T
             for layer in network.layers:
                 val_output = layer.forward(val_output)
             
             epoch_loss = current_epoch_loss / num_batches
             val_loss = loss_BCE(y_valid.T, val_output)
-            
-            history['loss'].append(epoch_loss)
-            history['val_loss'].append(val_loss)
+
+            val_preds = np.argmax(val_output, axis=0)
+            val_true = np.argmax(y_valid.T, axis=0)
+            val_acc = np.mean(val_preds == val_true)
 
             train_preds = np.argmax(output, axis=0)
             train_true = np.argmax(y_batch, axis=0)
-            accuracy = np.mean(train_preds == train_true)
+            train_accuracy = np.mean(train_preds == train_true)
+
+            history['loss'].append(epoch_loss)
+            history['val_loss'].append(val_loss)
+            history['accuracy'].append(train_accuracy)
+            history['val_accuracy'].append(val_acc)
 
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 patience_counter = 0
-
                 save_model(network, "model/best_model.npy")
-                print(f"--- Model saved at epoch {epoch+1} (Best Val Loss: {val_loss:.4f})")
+                print(f"Epoch {epoch+1}: Model saved (Loss: {val_loss:.4f}, Acc: {val_acc:.4f})")
             else:
                 patience_counter += 1
                 
             if patience_counter >= patience:
-                print(f"Early Stopping! No improvement for {patience} epochs.")
+                print(f"Early Stopping at epoch {epoch+1}!")
                 break
-
-            # print(f"Epoch {epoch+1}/{epochs} - loss: {epoch_loss:.4f} - val_loss: {val_loss:.4f}")
         
         return history
             

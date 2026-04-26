@@ -24,4 +24,15 @@ def load_model(network, filename='model/saved_model.npy'):
             layer.bias = model_data[data_idx + 1]
             data_idx += 2
             
-    print("Model loaded successfully from .npy!")
+    # print("Model loaded successfully from .npy!")
+
+import json
+import os
+
+def save_history(history, filename='model/history.json'):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    
+    with open(filename, 'w') as f:
+        json.dump(history, f)
+    
+    print(f"History saved to {filename}")
