@@ -25,7 +25,4 @@ def load_and_split_data(file_path='data.csv', test_size=0.2):
     X_train, X_valid = X[train_idx], X[valid_idx]
     y_train, y_valid = y[train_idx], y[valid_idx]
     
-    print(f"x_train shape : {X_train.shape}")
-    print(f"x_valid shape : {X_valid.shape}")
-    
     return X_train, X_valid, y_train, y_valid
