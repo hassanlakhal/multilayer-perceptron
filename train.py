@@ -22,8 +22,13 @@ def get_args():
 if __name__ ==  '__main__':
 
     args = get_args()
-    print(f"Training with {args.optimizer}...")
+    
     opt = args.optimizer
+    loss = args.loss
+    learning_rate = args.learning_rate
+    batch_size = args.batch_size
+    epochs = args.epochs
+
     input_layer = [layers.DenseLayer(30, activation='sigmoid', weights_initializer='heUniform', optimizer=opt)]
     hidden_layers = []
     for units in args.layers :
@@ -38,10 +43,10 @@ if __name__ ==  '__main__':
 
 
     history = model.fit(network, (X_train, y_train), (X_test, y_test), 
-                    loss='categoricalCrossentropy', 
-                    learning_rate=0.001, 
-                    batch_size=8, 
-                    epochs=70)
+                    loss=loss, 
+                    learning_rate=learning_rate, 
+                    batch_size=batch_size, 
+                    epochs=epochs)
                     
 
     history_filename = f"model/history_{opt}.json"
