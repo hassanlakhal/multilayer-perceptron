@@ -4,6 +4,10 @@ A from-scratch implementation of a Multilayer Perceptron (MLP) Artificial Neural
 
 The project features a custom neural network library created entirely from scratch, bypassing high-level machine learning abstractions like TensorFlow or PyTorch. It heavily emphasizes the mathematical foundations of deep learning.
 
+## Training Performance
+
+![Training Graph](graph.png)
+
 ---
 
 ## Technical & Theoretical Details
