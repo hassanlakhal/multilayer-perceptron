@@ -36,12 +36,12 @@ Where:
 
 ### 2. Loss Functions (`src/loss.py`)
 Loss functions quantify the difference between the network's predictions $\hat{y}$ (derived from $A^{[L]}$) and the true labels $y$.
-- **Categorical Cross Entropy (CCE)**: Used during the core training loop for multi-class formatted inputs (e.g., one-hot encoded `[1,0]` vs `[0,1]`). 
-  Summing across classes $C$ and averaging across $m$ batch size:
-  $$ L_{CCE} = - \frac{1}{m} \sum_{i=1}^{m} \sum_{k=1}^{C} y^{(i)}_k \log(\hat{y}^{(i)}_k) $$
-- **Binary Cross Entropy (BCE)**: Applied strictly on validation checks to test binary correctness. 
-  $$ L_{BCE} = - \frac{1}{m} \sum_{i=1}^{m} \left( y^{(i)} \log(\hat{y}^{(i)}) + (1 - y^{(i)}) \log(1 - \hat{y}^{(i)}) \right) $$
-  *Implementation detail*: Probabilities $\hat{y}$ are clipped against a minimal threshold ($\epsilon = 1e-15$) bounding them between $[1e-15, 1 - 1e-15]$ to prevent computing $\log(0)$.
+Categorical Cross Entropy (CCE): Used during the core training loop for multi-class formatted inputs (e.g., one-hot encoded [1,0] vs [0,1]). Summing across classes $C$ and averaging across $m$ batch size:
+$$ L_{CCE} = - \frac{1}{m} \sum_{i=1}^{m} \sum_{k=1}^{C} y^{(i)}_k \log(\hat{y}^{(i)}_k) $$
+
+Binary Cross Entropy (BCE): Applied strictly on validation checks to test binary correctness. 
+$$ L_{BCE} = - \frac{1}{m} \sum_{i=1}^{m} \left( y^{(i)} \log(\hat{y}^{(i)}) + (1 - y^{(i)}) \log(1 - \hat{y}^{(i)}) \right) $$ 
+Implementation detail: Probabilities $\hat{y}$ are clipped against a minimal threshold ($\epsilon = 1e-15$) bounding them between $[1e-15, 1 - 1e-15]$ to prevent computing $\log(0)$.
 
 ### 3. Backpropagation
 Backpropagation relies on the chain rule of calculus to compute the gradient of the loss function with respect to each weight $W$ and bias $b$ in the network.
