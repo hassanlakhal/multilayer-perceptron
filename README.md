@@ -15,41 +15,70 @@ This section explains the foundational theory operating behind the custom implem
 
 ### 1. Feed-forward Architecture
 A Multilayer Perceptron is a fully connected class of feedforward artificial neural networks.
-In each `Dense` layer (`src/layers.py`), the inputs vectors undergo a linear transformation followed by a non-linear activation:
+In each `Dense` layer (`src/layers.py`), the inputs undergo a linear transformation followed by a non-linear activation function. For a layer $l$ and a batch of $m$ examples:
 
 $$ Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]} $$
 $$ A^{[l]} = g(Z^{[l]}) $$
 
-Where $W^{[l]}$ are the weight matrices, $b^{[l]}$ are biases, and $g$ is the activation function. 
-* **Activations (`src/activations.py`)**: 
-  - **Sigmoid**: Used for hidden layers, mapping values between 0 and 1. Implementation is highly stabilized via clipping `[-500, 500]` to avoid overflow issues.
-  - **Softmax**: Used at the output layer to model class probabilities. Designed safely by subtracting maximum array values for numerical stability (preventing `NaN` scaling).
+Where:
+- $W^{[l]}$ is the weight matrix of shape $(n^{[l]}, n^{[l-1]})$.
+- $A^{[l-1]}$ is the input matrix (or activations from the previous layer) of shape $(n^{[l-1]}, m)$.
+- $b^{[l]}$ is the bias vector of shape $(n^{[l]}, 1)$.
+- $g$ is the activation function.
 
-### 2. Backpropagation
-During backpropagation, we compute the error in the final layer and propagate it backward via the chain rule to update the weights.
-The error gradient (`error_gradient = output - y_batch`) passes backward:
-- Weight gradients: $dW = \frac{1}{m} dZ \cdot A^{[l-1]T}$ 
-- Bias gradients: $dB = \frac{1}{m} \sum dZ$
+**Activations (`src/activations.py`)**: 
+- **Sigmoid**: Used for hidden layers to introduce non-linearity, mapping values to $(0, 1)$.
+  $$ \sigma(Z) = \frac{1}{1 + e^{-Z}} $$
+  *Implementation detail*: $Z$ is dynamically clipped $[-500, 500]$ to prevent exponential overflow (`RuntimeWarning`).
+- **Softmax**: Used at the output layer for multi-class/binary probability distribution.
+  $$ \text{Softmax}(Z_i) = \frac{e^{Z_i}}{\sum_{j} e^{Z_j}} $$
+  *Implementation detail*: To ensure numerical stability, $\max(Z)$ across the vector is subtracted before exponentiation ($e^{Z_i - \max(Z)}$), preventing `NaN` generation from massive scalar evaluation.
 
-### 3. Optimization Algorithms
-Weights are adjusted iteratively to minimize loss. This repository supports two types of gradient descent optimizations:
-* **Standard SGD (Stochastic Gradient Descent)**: 
-  Updates weights proportionally to the learning rate $\alpha$ and the negative gradient.
-  $W = W - \alpha \cdot dW$
-* **RMSprop (Root Mean Square Propagation)**:
-  An adaptive learning method implemented to speed up convergence by overcoming standard vanishing/exploding gradients. It maintains a decaying average of squared gradients:
-  $v_{dw} = \beta v_{dw} + (1 - \beta) dW^2$ 
-  $W = W - \frac{\alpha}{\sqrt{v_{dw}} + \epsilon} dW$
+### 2. Loss Functions (`src/loss.py`)
+Loss functions quantify the difference between the network's predictions $\hat{y}$ (derived from $A^{[L]}$) and the true labels $y$.
+- **Categorical Cross Entropy (CCE)**: Used during the core training loop for multi-class formatted inputs (e.g., one-hot encoded `[1,0]` vs `[0,1]`). 
+  Summing across classes $C$ and averaging across $m$ batch size:
+  $$ L_{CCE} = - \frac{1}{m} \sum_{i=1}^{m} \sum_{k=1}^{C} y^{(i)}_k \log(\hat{y}^{(i)}_k) $$
+- **Binary Cross Entropy (BCE)**: Applied strictly on validation checks to test binary correctness. 
+  $$ L_{BCE} = - \frac{1}{m} \sum_{i=1}^{m} \left( y^{(i)} \log(\hat{y}^{(i)}) + (1 - y^{(i)}) \log(1 - \hat{y}^{(i)}) \right) $$
+  *Implementation detail*: Probabilities $\hat{y}$ are clipped against a minimal threshold ($\epsilon = 1e-15$) bounding them between $[1e-15, 1 - 1e-15]$ to prevent computing $\log(0)$.
 
-### 4. Loss Functions (`src/loss.py`)
-Loss functions govern how standard error is quantified during training.
-- **Categorical Cross Entropy (CCE)**: Evaluates training predictions natively against one-hot encoded multi-class true labels. 
-- **Binary Cross Entropy (BCE)**: Applied strictly on validation checks to test binary correctness. Values are heavily clipped against a minimal threshold ($\epsilon = 1e-15$) to prevent taking logarithms of $0$.
+### 3. Backpropagation
+Backpropagation relies on the chain rule of calculus to compute the gradient of the loss function with respect to each weight $W$ and bias $b$ in the network.
+Starting from the output layer's error gradient $dZ^{[L]}$ (which simplifies to $A^{[L]} - y$ when using Cross-Entropy combined with Softmax):
+$$ dZ^{[L]} = A^{[L]} - y $$
+
+For any preceding layer $l$, the gradients are propagated backwards:
+- **Weight Gradients**: The partial derivative of the loss regarding weights.
+  $$ dW^{[l]} = \frac{\partial L}{\partial W^{[l]}} = \frac{1}{m} dZ^{[l]} \cdot (A^{[l-1]})^T $$
+- **Bias Gradients**: The partial derivative of the loss regarding biases (summed across the batch dimension).
+  $$ dB^{[l]} = \frac{\partial L}{\partial b^{[l]}} = \frac{1}{m} \sum_{i=1}^{m} dZ^{[l](i)} $$
+- **Input Error Propagation**: The error pushed to the previous layer $l-1$ to continue the chain.
+  $$ dZ^{[l-1]} = (W^{[l]})^T \cdot dZ^{[l]} * g'(Z^{[l-1]}) $$
+  *(Note: Specific implementations vary depending on optimizer integrations, but the underlying chain geometry remains identical).*
+
+### 4. Optimization Algorithms
+Weights are adjusted iteratively to minimize loss. This repository supports two forms of gradient descent methodologies:
+- **Standard SGD (Stochastic Gradient Descent)**: 
+  Updates weights scaling linearly by the learning rate $\alpha$.
+  $$ W^{[l]} = W^{[l]} - \alpha \cdot dW^{[l]} $$
+  $$ b^{[l]} = b^{[l]} - \alpha \cdot dB^{[l]} $$
+
+- **RMSprop (Root Mean Square Propagation)**:
+  An adaptive learning rate method designed to resolve diminishing/exploding gradient problems. In RMSprop, we maintain an exponentially decaying average of squared gradients:
+  $$ v_{dW} = \beta v_{dW} + (1 - \beta) (dW^{[l]})^2 $$
+  $$ v_{dB} = \beta v_{dB} + (1 - \beta) (dB^{[l]})^2 $$
+  Weights are updated inversely proportional to the square root of this moving average, standardizing the variance over steps. Epsilon ($\epsilon = 1e-8$) is added to prevent zero-division:
+  $$ W^{[l]} = W^{[l]} - \frac{\alpha}{\sqrt{v_{dW}} + \epsilon} dW^{[l]} $$
+  $$ b^{[l]} = b^{[l]} - \frac{\alpha}{\sqrt{v_{dB}} + \epsilon} dB^{[l]} $$
+  *(Algorithm default: $\beta = 0.9$)*
 
 ### 5. Training Mechanics (`src/network.py`)
-* **Mini-Batch Data Loading**: During epochs, datasets are stochastically shuffled and segmented by `$batch\_size$`, improving memory generalization over full-batch descent.
-* **Early Stopping**: Validation loss is tracked dynamically per epoch. If the validation loss plateaus or stops decreasing for $Patience = 10$ consecutive epochs, the model assumes convergence, saves the lowest loss (`best_model.npy`), and safely terminates.
-* **Weight Initializations**: He Uniform initialization strategy calculates $limit = \sqrt{\frac{6}{input\_size}}$, assigning initial parameters evenly around zero.
+- **Mini-Batch Gradient Descent**: During each epoch, datasets are stochastically shattered utilizing `np.random.permutation()` and processed in sub-chunks of `$batch\_size$`. This injects beneficial noise into the learning matrix and enables computational speed scaling over strictly Full-Batch processes.
+- **Early Stopping**: Validation loss is tracked dynamically per epoch. If the validation loss fails to decrease over $patience$ consecutive epochs ($Patience = 10$), the model assumes local minima convergence. The best historical parameters (`best_model.npy`) are serialized to disk, terminating the loop safely.
+- **Weight Initializations (He Uniform)**: Weight parameter initialization prevents vanishing gradients out of the gate. For an array with $n^{[l-1]}$ incoming inputs (`input_size`), weights $W^{[l]}$ are populated from a uniform distribution bounded by:
+  $$ \text{limit} = \sqrt{\frac{6}{n^{[l-1]}}} $$
+  $$ W \sim \mathcal{U}(-\text{limit}, \text{limit}) $$
 
 ---
 
