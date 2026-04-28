@@ -152,5 +152,4 @@ $$\text{limit} = \sqrt{\frac{6}{n^{[l-1]}}}, \qquad W \sim \mathcal{U}(-\text{li
 numpy
 pandas
 matplotlib
-scikit-learn
 ```
