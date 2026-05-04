@@ -3,9 +3,39 @@ from src.network import Model
 import numpy as np
 from split_data import load_and_split_data
 from src.utils import save_model, save_history
+import matplotlib.pyplot as plt
+# from src.plot_history import plot_learning_curves
 model = Model()
 
 import argparse
+
+def plot_history(history):
+        
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+    ax1.plot(history['loss'], label='training loss', color='#1f77b4', linewidth=2)
+    ax1.plot(history['val_loss'], label='validation loss', color='#ff7f0e', linestyle='--', linewidth=1.5)
+    ax1.set_title('Figure IV.1: Loss')
+    ax1.set_xlabel('epochs')
+    ax1.set_ylabel('loss')
+    ax1.grid(True, linestyle='--', alpha=0.5)
+    ax1.legend()
+
+    ax2.plot(history['accuracy'], label='training acc', color='#1f77b4', linewidth=2)
+    ax2.plot(history['val_accuracy'], label='validation acc', color='#ff7f0e', linewidth=2)
+    ax2.set_title('Figure IV.2: Accuracy')
+    ax2.set_xlabel('Epochs')
+    ax2.set_ylabel('Accuracy')
+    ax2.set_ylim(0.4, 1.02) 
+    ax2.grid(True, linestyle='--', alpha=0.5)
+    ax2.legend()
+
+    plt.tight_layout()
+    
+    image_name = f"learning_curves_{opt}.png"
+    plt.savefig(image_name, dpi=300)
+    print(f"Graph saved as {image_name}")
+
 
 def get_args():
     parser = argparse.ArgumentParser(description="Multilayer Perceptron Training")
@@ -48,6 +78,6 @@ if __name__ ==  '__main__':
                     batch_size=batch_size, 
                     epochs=epochs)
                     
-
+    plot_history(history)
     history_filename = f"model/history_{opt}.json"
     save_history(history, history_filename)
