@@ -62,21 +62,24 @@ class Model:
             val_output = X_valid.T
             for layer in network.layers:
                 val_output = layer.forward(val_output)
-            
-            epoch_loss = current_epoch_loss / num_batches
-            val_loss = loss_BCE(y_valid.T, val_output)
 
+            val_loss = loss_BCE(y_valid.T, val_output)
             val_preds = np.argmax(val_output, axis=0)
             val_true = np.argmax(y_valid.T, axis=0)
             val_acc = np.mean(val_preds == val_true)
 
-            train_preds = np.argmax(output, axis=0)
-            train_true = np.argmax(y_batch, axis=0)
-            train_accuracy = np.mean(train_preds == train_true)
+            train_output = X_train.T
+            for layer in network.layers:
+                train_output = layer.forward(train_output)
 
+            train_preds = np.argmax(train_output, axis=0)
+            train_true = np.argmax(y_train.T, axis=0)
+            epoch_train_accuracy = np.mean(train_preds == train_true)
+
+            epoch_loss = current_epoch_loss / num_batches
             history['loss'].append(epoch_loss)
             history['val_loss'].append(val_loss)
-            history['accuracy'].append(train_accuracy)
+            history['accuracy'].append(epoch_train_accuracy) 
             history['val_accuracy'].append(val_acc)
 
             if val_loss < best_val_loss:

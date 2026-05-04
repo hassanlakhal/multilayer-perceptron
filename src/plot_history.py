@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import json
 
-with open('../model/history_sgb.json', 'r') as f: h_sgd = json.load(f)
+with open('../model/history_sgd.json', 'r') as f: h_sgd = json.load(f)
 with open('../model/history_rmsprop.json', 'r') as f: h_rms = json.load(f)
 
 plt.figure(figsize=(10, 6))
