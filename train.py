@@ -4,7 +4,7 @@ import numpy as np
 from split_data import load_and_split_data
 from src.utils import save_model, save_history
 import matplotlib.pyplot as plt
-# from src.plot_history import plot_learning_curves
+
 model = Model()
 
 import argparse
